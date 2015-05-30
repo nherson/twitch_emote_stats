@@ -1,0 +1,6 @@
+[connection]
+url = "irc.twitch.tv"
+port = "6667"
+username = "USER"
+password = "PASS"
+channel = "#cooltwitchchannel"
