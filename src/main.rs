@@ -1,8 +1,6 @@
 extern crate irc;
 
-//use std::io::{BufRead};
 use std::process::exit;
-//use regex::Regex;
 use std::path::Path;
 use irc::client::prelude::*;
 
