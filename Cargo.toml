@@ -5,3 +5,7 @@ authors = ["Nicholas Herson <nicholas.herson@gmail.com>"]
 
 [dependencies]
 irc = "*"
+log = "*"
+env_logger = "*"
+regex = "0.1.8"
+regex_macros = "*"
