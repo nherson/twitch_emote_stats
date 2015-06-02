@@ -1,17 +1,18 @@
 use std::collections::LinkedList;
 use std::sync::{Arc,Mutex};
 use irc::client::prelude::*;
+use std::sync::mpsc::{Receiver,Sender};
 
-struct Parser {
+pub struct Parser {
     incoming: Receiver<Message>,
     outgoing: Sender<String>,
     emotes: Vec<String>,
 }
 
 impl Parser {
-    pub fn new(pq: Arc<Mutex<LinkedList<Message>>>) -> Parser {
+    pub fn new(inc: Receiver<Message>, out: Sender<String>) -> Parser {
         // Do some business to load the emotes
-        Parser { parse_queue: pq, emotes: vec!["Kappa", "EleGiggle", "BibleThump"] }
+        Parser { incoming: inc, outgoing: out, emotes: vec!["Kappa".to_string(), "EleGiggle".to_string(), "BibleThump".to_string()] }
     }
 
     // - For each message
@@ -21,13 +22,12 @@ impl Parser {
     //     - get timestamp and push emote/timestamp pair onto logging queue
     pub fn start(&mut self) {
         loop {
-            let message = incoming.recv();
-            let re = regex!(r" +");
-            let words = re.replace_all(message.suffix.clone().unwrap(), " ").unwrap().split(" ");
-            for word in words {
-                for emote in self.emotes {
-                    if word == emote {
-                        println!("FOUND: {}", word);
+            let message = self.incoming.recv().unwrap();
+            let line = message.suffix.clone().unwrap();
+            for word in line.split(" ") {
+                for emote in self.emotes.clone() {
+                    if emote == word {
+                        println!("FOUND: {} by {}", word, message.get_source_nickname().unwrap());
                     }
                 }
             }

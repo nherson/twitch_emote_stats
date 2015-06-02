@@ -1,9 +1,7 @@
 #[macro_use]
-extern crate regex;
 extern crate log;
 extern crate irc;
 extern crate env_logger;
-
 
 use std::process::exit;
 use std::path::Path;
@@ -11,8 +9,10 @@ use irc::client::prelude::*;
 use std::collections::LinkedList;
 use std::error::Error;
 use log::LogLevel;
+use std::sync::mpsc::{Sender,Receiver,channel};
+use std::thread;
 
-mod receiver;
+mod listener;
 mod parser;
 
 fn main() {
@@ -37,9 +37,20 @@ fn main() {
         Ok(_) => {},
         Err(e) => handle_error(&e),
     };
-    let parse_queue = LinkedList::new();
-    let mut recv = receiver::Receiver::new(server, parse_queue);
-    recv.start();
+    let (listener_out, parser_in) = channel();
+    let (parser_out, logger_in) = channel();
+    let mut lst = listener::Listener::new(server, listener_out);
+    let mut prsr = parser::Parser::new(parser_in, parser_out);
+    // start the parser
+    let p = thread::spawn(move || {
+        prsr.start();
+    });
+    // start the listener
+    let l = thread::spawn(move || {
+        lst.start();
+    });
+    p.join();
+    l.join();
 }
 
 fn handle_error(e: &Error) -> ! {
